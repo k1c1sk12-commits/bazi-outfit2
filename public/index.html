@@ -107,8 +107,9 @@
         <div class="form-grid">
           <div>
             <label>曆法</label>
-            <select id="calendarType">
+            <select id="calendarType" onchange="toggleCalendar()">
               <option value="solar">新曆</option>
+              <option value="lunar">農曆</option>
             </select>
           </div>
           <div class="inline-3">
@@ -171,16 +172,74 @@
 
     const ELEMENT_MAP = { wood: '木', fire: '火', earth: '土', metal: '金', water: '水' };
 
+    async function toggleCalendar() {
+      const calType = document.getElementById('calendarType').value;
+      const yearSelect = document.getElementById('year');
+      const currentYear = yearSelect.value;
+      
+      if (calType === 'lunar') {
+        yearSelect.innerHTML = '';
+        for (let y = 1950; y <= 2010; y++) {
+          yearSelect.add(new Option(y + '年', y));
+        }
+      } else {
+        yearSelect.innerHTML = '';
+        for (let y = 1950; y <= 2010; y++) {
+          yearSelect.add(new Option(y, y));
+        }
+      }
+      yearSelect.value = currentYear;
+    }
+
+    async function lunarToSolar(year, month, day) {
+      try {
+        const res = await fetch('https://apis.alapi.cn/api/wnl?_date=' + year + '-' + month + '-' + day, {
+          method: 'GET'
+        });
+        const data = await res.json();
+        if (data.data && data.data.solar) {
+          return {
+            year: parseInt(data.data.solar.split('-')[0]),
+            month: parseInt(data.data.solar.split('-')[1]),
+            day: parseInt(data.data.solar.split('-')[2])
+          };
+        }
+      } catch (e) {
+        console.log('API fail,用簡單');
+      }
+      return null;
+    }
+
     async function analyze() {
       const btn = document.querySelector('.btn-primary');
       btn.textContent = '計算中...';
       btn.disabled = true;
 
+      let year = parseInt(document.getElementById('year').value);
+      let month = parseInt(document.getElementById('month').value);
+      let day = parseInt(document.getElementById('day').value);
+
+      const calType = document.getElementById('calendarType').value;
+      let solarDate = { year, month, day };
+
+      if (calType === 'lunar') {
+        const converted = await lunarToSolar(year, month, day);
+        if (converted) {
+          solarDate = converted;
+        } else {
+          alert('農曆轉換失敗，請使用新曆');
+          btn.textContent = '計算結果';
+          btn.disabled = false;
+          return;
+        }
+      }
+
       const data = {
-        year: parseInt(document.getElementById('year').value),
-        month: parseInt(document.getElementById('month').value),
-        day: parseInt(document.getElementById('day').value),
-        mode: document.getElementById('mode').value
+        year: solarDate.year,
+        month: solarDate.month,
+        day: solarDate.day,
+        mode: document.getElementById('mode').value,
+        calendarType: calType
       };
 
       try {
@@ -203,11 +262,12 @@
     function renderResult(r) {
       document.getElementById('resultArea').style.display = 'block';
       
+      const calLabel = r.input.calendarType === 'lunar' ? '農曆' : '新曆';
       document.getElementById('summary').textContent = 
-        `新曆 ${r.input.year}年${r.input.month}月${r.input.day}日 | 日主 ${r.day_master}`;
+        calLabel + ' ' + r.input.year + '年' + r.input.month + '月' + r.input.day + '日 | 日主 ' + r.day_master;
       
       document.getElementById('modePill').innerHTML = 
-        `<span class="pill">${MODE_LABEL[r.input.mode]}</span>`;
+        '<span class="pill">' + MODE_LABEL[r.input.mode] + '</span>';
 
       const labels = ['年柱', '月柱', '日柱', '時柱'];
       document.getElementById('pillarGrid').innerHTML = Object.entries(r.pillars).map(([k, v], i) => 

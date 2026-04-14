@@ -117,12 +117,14 @@ export default async function handler(req) {
 
   try {
     const body = await req.json();
-    const { year, month, day, hour = 12, mode = 'balanced' } = body;
+    const { year, month, day, hour = 12, mode = 'balanced', calendarType = 'solar' } = body;
 
     const yearPillar = getYearPillar(year);
     const monthPillar = getMonthPillar(year, month);
     const dayPillar = getDayPillar(year, month, day);
     const hourPillar = getHourPillar(hour);
+
+    const calLabel = calendarType === 'lunar' ? '農曆' : '新曆';
     
     const pillars = [yearPillar, monthPillar, dayPillar, hourPillar];
     const counts = toCountResult(pillars);
@@ -134,7 +136,7 @@ export default async function handler(req) {
 
     const response = {
       success: true,
-      input: { year, month, day, hour, mode },
+      input: { year, month, day, hour, mode, calendarType },
       pillars: {
         year: yearPillar,
         month: monthPillar,
