@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>八字 × 衣著增運系統</title>
+  <style>
+    :root {
+      --bg: #F7F4EF;
+      --line: #E7DED2;
+      --text: #3E3A36;
+      --muted: #7A746D;
+      --accent: #C6A77D;
+      --accent-2: #E8D6BF;
+      --good: #6B705C;
+      --warn: #B48A5A;
+      --bad: #9C6B5A;
+      --shadow: 0 18px 50px rgba(62,58,54,.08);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top right, rgba(198,167,125,.18), transparent 26%),
+        radial-gradient(circle at top left, rgba(107,112,92,.10), transparent 24%),
+        linear-gradient(180deg, #FBF8F3 0%, #F7F4EF 100%);
+      line-height: 1.5;
+    }
+    .wrap { width: min(1240px, calc(100% - 28px)); margin: 24px auto 56px; }
+    .hero, .main-grid, .double-grid, .four-pillars, .metrics, .outfit-grid { display: grid; gap: 18px; }
+    .hero { grid-template-columns: 1.2fr .95fr; margin-bottom: 20px; }
+    .main-grid { grid-template-columns: 350px 1fr; align-items: start; }
+    .four-pillars { grid-template-columns: repeat(4, 1fr); }
+    .metrics { grid-template-columns: repeat(5, 1fr); }
+    .outfit-grid { grid-template-columns: repeat(2, 1fr); }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,251,245,.98));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+    h1 { font-size: clamp(30px, 4vw, 46px); line-height: 1.05; margin: 6px 0 12px; }
+    h2 { font-size: 22px; margin-bottom: 14px; }
+    h3 { font-size: 18px; margin-bottom: 10px; }
+    .subtitle, .muted { color: var(--muted); }
+    .subtitle { max-width: 60ch; }
+    .pill-row, .tag-row, .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+    .pill, .chip {
+      border-radius: 999px;
+      border: 1px solid #E7DED2;
+      background: #F8F3EC;
+      color: var(--muted);
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    .chip { color: var(--text); font-size: 14px; }
+    .form-grid { display: grid; gap: 14px; }
+    .inline-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 7px; }
+    select { width: 100%; border-radius: 14px; border: 1px solid var(--line); background: #FFFCF8; padding: 12px; font-size: 15px; }
+    .btn-primary { background: linear-gradient(180deg, var(--accent-2), var(--accent)); border: 0; padding: 12px 24px; font-size: 15px; font-weight: 800; border-radius: 14px; cursor: pointer; }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .headline { display: flex; justify-content: space-between; gap: 16px; align-items: start; margin-bottom: 16px; flex-wrap: wrap; }
+    .pillar, .metric, .outfit-card {
+      background: linear-gradient(180deg, #F8F2EA, #F3ECE2);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      text-align: center;
+    }
+    .pillar-title, .metric .key { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+    .pillar-value { font-size: 30px; font-weight: 800; letter-spacing: 1px; }
+    .metric .num { font-size: 24px; font-weight: 800; }
+    .metric .state { font-size: 12px; margin-top: 6px; }
+    .state-low { color: var(--warn); }
+    .state-ok { color: var(--good); }
+    .state-high { color: var(--bad); }
+    ul.clean { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+    .small { font-size: 12px; }
+    @media (max-width: 800px) { .hero, .main-grid, .four-pillars, .metrics, .outfit-grid, .inline-3 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="card">
+        <h1>八字 × 衣著增運系統</h1>
+        <p class="subtitle">輸入你的出生年月日時，系統可根據你的增運要求建議最適合的衣著配色。</p>
+      </div>
+      <div class="card">
+        <h2>系統規則摘要</h2>
+        <div class="tag-row">
+          <span class="pill">年柱：立春分界</span>
+          <span class="pill">月柱：節氣切換</span>
+          <span class="pill">五行：只計表面8字</span>
+          <span class="pill">支援新曆/農曆</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="main-grid">
+      <aside class="card">
+        <h2>輸入資料</h2>
+        <div class="form-grid">
+          <div>
+            <label>曆法</label>
+            <select id="calendarType">
+              <option value="solar">新曆</option>
+            </select>
+          </div>
+          <div class="inline-3">
+            <div><label>年</label><select id="year"></select></div>
+            <div><label>月</label><select id="month"></select></div>
+            <div><label>日</label><select id="day"></select></div>
+          </div>
+          <div>
+            <label>輸出模式</label>
+            <select id="mode">
+              <option value="balanced">基礎平衡</option>
+              <option value="wealth">財運</option>
+              <option value="relationship">感情</option>
+              <option value="mood">情緒</option>
+              <option value="health">健康</option>
+            </select>
+          </div>
+          <button class="btn-primary" onclick="analyze()">計算結果</button>
+        </div>
+      </aside>
+
+      <main id="resultArea" style="display:none;">
+        <section class="card">
+          <div class="headline">
+            <div>
+              <h2>命盤結果</h2>
+              <p class="muted" id="summary"></p>
+            </div>
+            <div class="pill-row" id="modePill"></div>
+          </div>
+          <div class="four-pillars" id="pillarGrid"></div>
+          <div style="height:16px;"></div>
+          <div class="chips" id="analysisChips"></div>
+        </section>
+
+        <section class="card">
+          <h2>五行分布</h2>
+          <div class="metrics" id="metricsGrid"></div>
+        </section>
+
+        <section class="card">
+          <h2>衣著建議</h2>
+          <div class="outfit-grid" id="outfitGrid"></div>
+        </section>
+      </main>
+    </section>
+  </div>
+
+  <script>
+    const ELEMENT_LABEL = { wood: '木', fire: '火', earth: '土', metal: '金', water: '水' };
+    const MODE_LABEL = { balanced: '基礎平衡', wealth: '財運', relationship: '感情', mood: '情緒', health: '健康' };
+    const MONTH_NAMES = ['正月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '冬月', '臘月'];
+
+    for (let y = 1950; y <= 2010; y++) document.getElementById('year').add(new Option(y, y));
+    for (let m = 1; m <= 12; m++) document.getElementById('month').add(new Option(m + '月', m));
+    for (let d = 1; d <= 31; d++) document.getElementById('day').add(new Option(d + '日', d));
+    document.getElementById('year').value = 1990;
+    document.getElementById('month').value = 1;
+    document.getElementById('day').value = 1;
+
+    const ELEMENT_MAP = { wood: '木', fire: '火', earth: '土', metal: '金', water: '水' };
+
+    async function analyze() {
+      const btn = document.querySelector('.btn-primary');
+      btn.textContent = '計算中...';
+      btn.disabled = true;
+
+      const data = {
+        year: parseInt(document.getElementById('year').value),
+        month: parseInt(document.getElementById('month').value),
+        day: parseInt(document.getElementById('day').value),
+        mode: document.getElementById('mode').value
+      };
+
+      try {
+        const res = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        
+        if (result.success) renderResult(result);
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.textContent = '計算結果';
+        btn.disabled = false;
+      }
+    }
+
+    function renderResult(r) {
+      document.getElementById('resultArea').style.display = 'block';
+      
+      document.getElementById('summary').textContent = 
+        `新曆 ${r.input.year}年${r.input.month}月${r.input.day}日 | 日主 ${r.day_master}`;
+      
+      document.getElementById('modePill').innerHTML = 
+        `<span class="pill">${MODE_LABEL[r.input.mode]}</span>`;
+
+      const labels = ['年柱', '月柱', '日柱', '時柱'];
+      document.getElementById('pillarGrid').innerHTML = Object.entries(r.pillars).map(([k, v], i) => 
+        '<div class="pillar"><div class="pillar-title">' + labels[i] + '</div><div class="pillar-value">' + v + '</div></div>'
+      ).join('');
+
+      document.getElementById('analysisChips').innerHTML = 
+        '<span class="chip">日主：' + r.day_master + '</span>' +
+        '<span class="chip">主補：' + ELEMENT_LABEL[r.analysis.primary] + '</span>' +
+        '<span class="chip">副補：' + ELEMENT_LABEL[r.analysis.secondary] + '</span>';
+
+      document.getElementById('metricsGrid').innerHTML = r.metrics.map(m => 
+        '<div class="metric"><div class="key">' + m.element + '</div><div class="num">' + m.count + '</div><div class="state ' + m.className + '">' + m.label + '</div></div>'
+      ).join('');
+
+      const outfitHtml = Object.values(r.outfit).map(s => 
+        '<div class="outfit-card"><h3>' + s.title + '</h3><ul class="clean">' + s.items.map(i => '<li>' + i + '</li>').join('') + '</ul></div>'
+      ).join('');
+      document.getElementById('outfitGrid').innerHTML = outfitHtml;
+    }
+  </script>
+</body>
+</html>
